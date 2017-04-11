@@ -1,0 +1,38 @@
+/*
+	File: fn_storeVehicle.sqf
+	Author: Bryan "Tonic" Boardwine
+	
+	Description:
+	Stores the vehicle in the garage.
+*/
+private["_nearVehicles","_vehicle"];
+if(vehicle player != player) then
+{
+	_vehicle = vehicle player;
+}
+	else
+{
+	_nearVehicles = nearestObjects[getPos (_this select 0),["Car","Air","Ship"],50]; //Fetch vehicles within 50m.
+	if(count _nearVehicles > 0) then
+	{
+		{
+			if(!isNil "_vehicle") exitWith {}; //Kill the loop.
+			_vehData = _x getVariable["vehicle_info_owners",[]];
+			if(count _vehData  > 0) then
+			{
+				_vehOwner = (_vehData select 0) select 0;
+				if((getPlayerUID player) == _vehOwner) exitWith
+				{
+					_vehicle = _x;
+				};
+			};
+		} foreach _nearVehicles;
+	};
+};
+
+if(isNil "_vehicle") exitWith {_string = localize "STR_Garage_NoNPC"; life_HUD_notifs pushBack [_string,time,2];};
+if(isNull _vehicle) exitWith {};
+[_vehicle,false,(_this select 1)] remoteExec ["TON_fnc_vehicleStore",HC1,false];
+_string = localize "STR_Garage_Store_Server";
+life_HUD_notifs pushBack [_string,time,1];
+life_garage_store = true;
